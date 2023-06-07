@@ -37,14 +37,14 @@ group by gender
 
 select * from dbo.credit_card_transaction
 
---1- write a query to print top 5 cities with highest spends and their percentage contribution of total credit card spends 
+--top 5 cities with highest spends and their percentage contribution of total credit card spends 
 select top 5 city, sum(amount) as amnt, 
 round(sum(cast(amount as float))/(select sum(cast(amount as float)) from dbo.credit_card_transaction),2) as spend_percent
 from dbo.credit_card_transaction
 group by city
 order by amnt desc
 
---2- write a query to print highest spend month and amount spent in that month for each card type
+--print highest spend month and amount spent in that month for each card type
 with monthly_spends as
 (select card_type,year(transaction_date) as yr,datename(MONTH,transaction_date) as [month], sum(amount) as total_amnt,
 DENSE_RANK() over(partition by card_type order by sum(amount) desc) as rnk
@@ -55,7 +55,7 @@ select card_type, yr,[month] ,total_amnt
 from monthly_spends
 where rnk =1
 
---3- write a query to print the transaction details(all columns from the table) for each card type when
+-- print the transaction details(all columns from the table) for each card type when
 --it reaches a cumulative of 1000000 total spends(We should have 4 rows in the o/p one for each card type)
 
 with cumulative_table as   --cte1
@@ -72,8 +72,7 @@ where cum_amnt > 999999)
 select * from pick_1000000th
 where rnk = 1
 
--- 4- write a query to find city which had lowest percentage spend for gold card type
---- not accurate
+-- city which had lowest percentage spend for gold card type
 select city,sum(amount),
 cast(sum(amount) as float)/(select sum(amount) from dbo.credit_card_transaction ) as sales
 from dbo.credit_card_transaction
@@ -81,7 +80,7 @@ where card_type = 'Gold'
 group by city
 order by sales 
 
--- 5- write a query to print 3 columns:  city, highest_expense_type , lowest_expense_type (example format : Delhi , bills, Fuel)
+-- city, highest_expense_type , lowest_expense_type (example format : Delhi , bills, Fuel)
 
 with cte as(
 select city,
@@ -94,8 +93,8 @@ select * from cte
 group by city,highest_expense_type,lowest_expense_type;
 
 
--- 6- write a query to find percentage contribution of spends by females for each expense type
--- inaccurate
+-- percentage contribution of spends by females for each expense type
+
 with female_spends_exp_type as 
 (select exp_type, sum(amount) as total_exp_type_spend
 from dbo.credit_card_transaction
@@ -106,7 +105,7 @@ select exp_type, total_exp_type_spend,round(cast(total_exp_type_spend as float)/
 from female_spends_exp_type
 group by exp_type,total_exp_type_spend;
 
--- 7- which card and expense type combination saw highest month over month growth in Jan-2014
+-- card and expense type combination saw highest month over month growth in Jan-2014
 
 with month_sales as (
 select card_type, exp_type, 
@@ -119,7 +118,7 @@ select top 1 *, round((cast(jan_2014_sales as float)- dec_2013_sales)/dec_2013_s
 from month_sales
 order by per desc
 
---8- during weekends which city has highest total spend to total no of transcations ratio 
+-- during weekends which city has highest total spend to total no of transcations ratio 
 
 with weekday_agg as(
 select transaction_id,city, datename(WEEKDAY,transaction_date) as weekday ,sum(amount) as total
@@ -139,7 +138,7 @@ select * from dbo.credit_card_transaction
 where city = 'Bengaluru' and datename(WEEKDAY,transaction_date) in ('Saturday', 'Sunday');
 
 
---9 - which city took least number of days to reach its 500th transaction after the first transaction in that city
+--which city took least number of days to reach its 500th transaction after the first transaction in that city
 with cte as(
 select *,
 min(transaction_date) over(partition by city order by transaction_date) as first_trans_date,
